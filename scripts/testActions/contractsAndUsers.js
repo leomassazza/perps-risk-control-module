@@ -16,10 +16,10 @@ const impersonateSigners = async (provider, safeContract) => {
   const signersAdresses = await safeContract.getOwners();
   const impersonatedSigners = [];
   for (const signerAddress of signersAdresses) {
-    impersonatedSigners.push(await impersonateAccount(signerAddress, provider));
+    impersonatedSigners.push(await impersonateAccount(signerAddress, provider, ethers));
   }
-  const safeSigner = await impersonateAccount(safeContract.address, provider);
-  const l2RelaySigner = await impersonateAccount(L2_RELAY_OWNER, provider);
+  const safeSigner = await impersonateAccount(safeContract.address, provider, ethers);
+  const l2RelaySigner = await impersonateAccount(L2_RELAY_OWNER, provider, ethers);
 
   return { impersonatedSigners, safeSigner, l2RelaySigner };
 };
@@ -35,19 +35,14 @@ const getContracts = async (owner, moduleConfig, moduleAddress = undefined) => {
   let gnosisModule;
 
   if (moduleAddress) {
-    gnosisModule = new ethers.Contract(moduleAddress, moduleABI, owner);
+    const moduleArtifact = hre.artifacts.readArtifact(
+      'contracts/PerpsV2RiskControlModule.sol:PerpsV2RiskControlModule'
+    );
+    gnosisModule = new ethers.Contract(moduleAddress, moduleArtifact.abi, owner);
   } else {
     // deploy one instance
     const GnosisModule = await hre.ethers.getContractFactory('PerpsV2RiskControlModule', owner);
-    gnosisModule = await GnosisModule.deploy(
-      owner.address,
-      moduleConfig.profitMarginUSD,
-      moduleConfig.profitMarginPercent,
-      moduleConfig.minKeeperFeeUpperBound,
-      moduleConfig.minKeeperFeeLowerBound,
-      moduleConfig.gasUnitsL1,
-      moduleConfig.gasUnitsL2
-    );
+    gnosisModule = await GnosisModule.deploy(owner.address, owner.address);
     await gnosisModule.deployed();
   }
 
@@ -60,7 +55,7 @@ const getContracts = async (owner, moduleConfig, moduleAddress = undefined) => {
 
 const fixSettingsOwner = async ({ safeSigner, l2RelaySigner, perpsV2MarketSettings }) => {
   const owner = await perpsV2MarketSettings.owner();
-  if (owner == safeSigner.address) {
+  if (owner === safeSigner.address) {
     // do nothing;
     return;
   }

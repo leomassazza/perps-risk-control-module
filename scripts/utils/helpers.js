@@ -19,7 +19,7 @@ async function setBalance(accAddress, provider) {
   });
 }
 
-async function impersonateAccount(accAddress, provider) {
+async function impersonateAccount(accAddress, provider, ethers) {
   await provider.request({
     method: 'hardhat_impersonateAccount',
     params: [accAddress],
@@ -27,7 +27,7 @@ async function impersonateAccount(accAddress, provider) {
 
   await setBalance(accAddress, provider);
 
-  return await ethers.getSigner(accAddress);
+  return ethers.getSigner(accAddress);
 }
 
 async function fastForward(seconds, provider) {
@@ -40,7 +40,7 @@ async function fastForwardTo(time, provider) {
   const now = await getTime(provider);
 
   if (time < now) {
-    throw 'Cannot fast forward to a past date.';
+    throw new Error('Cannot fast forward to a past date.');
   }
 
   await fastForward(time - now, provider);

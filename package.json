@@ -2,7 +2,9 @@
   "name": "perps-v2-risk-control-module",
   "version": "1.0.0",
   "license": "UNLICENSED",
+  "author": "leomassazza",
   "scripts": {
+    "fork:ovm": "npx hardhat node --fork https://mainnet.optimism.io",
     "compile": "hardhat compile",
     "build": "tsc && cp .env build/",
     "lint": "eslint .",

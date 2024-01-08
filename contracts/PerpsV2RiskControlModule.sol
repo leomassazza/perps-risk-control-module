@@ -7,10 +7,9 @@ import '@openzeppelin/contracts/utils/math/Math.sol';
 import './interfaces/GnosisSafe.sol';
 import './interfaces/AddressResolver.sol';
 
-// PerpsV2DynamicFeesModule is a dynamic gas fee module, which is able to adjust the
-// minKeeperFee, within bounds set by governance.
+// PerpsV2RiskControlModule is a module, which is able to set MMV to zero for a specific market by an endorsed address
 //
-// @see: https://sips.synthetix.io/sips/sip-2013/
+// @see: https://sips.synthetix.io/sips/sip-2048/
 contract PerpsV2RiskControlModule is Ownable {
   using Math for uint256;
 
@@ -44,7 +43,7 @@ contract PerpsV2RiskControlModule is Ownable {
   // @dev set MMV to zero on the corresponding market.
   function coverRisk(bytes32 markeKey) external returns (bool success) {
     require(!isPaused, 'Module paused');
-    require(msg.sender == endorsed, 'Not endorsed')
+    require(msg.sender == endorsed, 'Not endorsed');
 
     success = _executeSafeTransaction(markeKey);
   }
@@ -78,7 +77,7 @@ contract PerpsV2RiskControlModule is Ownable {
       payload,
       Enum.Operation.Call
     );
-    _lastParamterUpdatedAtTime = block.timestamp;
+    uint256 _lastParamterUpdatedAtTime = block.timestamp;
 
     if (success) {
       emit ReduceMMVDone(markeKey, _lastParamterUpdatedAtTime);
@@ -91,6 +90,4 @@ contract PerpsV2RiskControlModule is Ownable {
 
   event ReduceMMVDone(bytes32 markeKey, uint256 paramterUpdatedAtTime);
   event ReduceMMVFailed(bytes32 markeKey, uint256 paramterUpdateAttemptedAtTime);
-
-  error NotEndorsed(address caller);
 }

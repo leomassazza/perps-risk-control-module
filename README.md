@@ -22,7 +22,7 @@ yarn run compile
 There's a script to verify the module functionality. In order to use it, fork optimism network with hardhat (i.e. in a Synthetix repo, `npm run fork:ovm`) and execute.
 
 ```bash
-npx hardhat run ./scripts/ xxxx .js
+npx hardhat run ./scripts/testRiskControlModule.js
 ```
 
 ## Implementation notes

@@ -22,7 +22,7 @@ async function main() {
   console.log('Module New Owner:', await gnosisModule.owner());
 }
 
-main().catch((error) => {
+main().catch(error => {
   console.error(error);
   process.exitCode = 1;
 });
