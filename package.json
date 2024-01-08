@@ -1,0 +1,41 @@
+{
+  "name": "perps-v2-risk-control-module",
+  "version": "1.0.0",
+  "license": "UNLICENSED",
+  "scripts": {
+    "compile": "hardhat compile",
+    "build": "tsc && cp .env build/",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
+    "flatten-module": "mkdir -p ./flattened/contracts && hardhat flatten contracts/PerpsV2RiskControlModule.sol > flattened/contracts/PerpsV2RiskControlModule.sol"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.8.3",
+    "chalk": "^4.1.2",
+    "dotenv": "^16.0.3",
+    "ethers": "^5.7.2"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^2.0.2",
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@types/dotenv": "^8.2.0",
+    "@types/node": "16.11.12",
+    "eslint": "7.6.0",
+    "eslint-config-prettier": "3.6.0",
+    "eslint-config-standard": "12.0.0",
+    "eslint-plugin-havven": "1.1.0",
+    "eslint-plugin-import": "2.22.0",
+    "eslint-plugin-no-only-tests": "2.4.0",
+    "eslint-plugin-node": "11.1.0",
+    "eslint-plugin-prettier": "2.6.2",
+    "eslint-plugin-promise": "4.3.1",
+    "eslint-plugin-standard": "4.0.0",
+    "hardhat": "^2.14.0",
+    "prettier": "1.19.1",
+    "ts-node-dev": "1.1.8",
+    "typescript": "4.5.2"
+  }
+}
