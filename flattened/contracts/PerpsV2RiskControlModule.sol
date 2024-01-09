@@ -544,8 +544,8 @@ contract PerpsV2RiskControlModule is Ownable {
     // endorsed
     endorsed = _endorsed;
 
-    // start as not paused
-    isPaused = false;
+    // start as paused
+    isPaused = true;
   }
 
   // --- External/Public --- //

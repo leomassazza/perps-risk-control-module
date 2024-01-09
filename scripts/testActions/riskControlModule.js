@@ -8,7 +8,7 @@ const tickOrCross = pass => (pass ? green('✔') : red('✗'));
 const logCheck = (message, expected, fetched) => {
   console.log(
     `${message}: ${tickOrCross(expected === fetched)} ` +
-      gray(`(expected: ${expected} fetched: ${fetched})`)
+    gray(`(expected: ${expected} fetched: ${fetched})`)
   );
 
   if (expected !== fetched) {
@@ -72,6 +72,7 @@ const attemptToControlRisk = async ({
   perpsV2MarketSettings,
   shouldFail,
   shouldFailEndorsed = false,
+  shouldFailPaused = false,
   marketKey,
 }) => {
   const marketKeyBytes = formatBytes32String(marketKey);
@@ -82,6 +83,9 @@ const attemptToControlRisk = async ({
   } else if (shouldFailEndorsed) {
     await assertRevert(gnosisModule.connect(user).coverRisk(marketKeyBytes), 'Not endorsed');
     succeeded = false;
+  } else if (shouldFailPaused) {
+    await assertRevert(gnosisModule.connect(user).coverRisk(marketKeyBytes), 'Module paused');
+    succeeded = false;
   } else {
     const previousValue = await perpsV2MarketSettings.maxMarketValue(marketKeyBytes);
     logCheck('  Previous MMV', formatEther(previousValue), formatEther(previousValue));
@@ -91,6 +95,8 @@ const attemptToControlRisk = async ({
   }
   return succeeded;
 };
+
+
 
 module.exports = {
   logCheck,

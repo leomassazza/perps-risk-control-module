@@ -59,7 +59,7 @@ async function main() {
       safeContract,
       gnosisModule,
       perpsV2MarketSettings,
-      moduleConfig,
+      moduleConfig: { ...moduleConfig, isPaused: true },
       marketKey,
       moduleOwner: owner,
     });
@@ -83,6 +83,25 @@ async function main() {
     );
     console.log('-------------------------');
     console.log();
+
+    // attempt to modify fee. Should fail
+    logCheck(
+      'Attempt to control risk. Should fail - paused',
+      false,
+      await attemptToControlRisk({
+        gnosisModule,
+        shouldFail: false,
+        shouldFailPaused: true,
+        owner,
+        user: user1,
+        marketKey,
+      })
+    );
+    console.log('-------------------------');
+    console.log();
+
+    // unpause module
+    await (await gnosisModule.connect(owner).setPaused(false)).wait();
 
     // Set endorsed
 
