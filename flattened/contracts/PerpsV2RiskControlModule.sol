@@ -517,7 +517,7 @@ pragma solidity ^0.8.17;
 
 
 
-// PerpsV2RiskControlModule is a module, which is able to set MMV to zero for a specific market by an endorsed address
+// PerpsV2RiskControlModule is a module, which is able to set MMV to zero for a specific market by an endorsedAccount address
 //
 // @see: https://sips.synthetix.io/sips/sip-2048/
 contract PerpsV2RiskControlModule is Ownable {
@@ -526,14 +526,14 @@ contract PerpsV2RiskControlModule is Ownable {
   address public constant SNX_PDAO_MULTISIG_ADDRESS = 0x6cd3f878852769e04A723A5f66CA7DD4d9E38A6C;
   address public constant SNX_ADDRESS_RESOLVER = 0x95A6a3f44a70172E7d50a9e28c85Dfd712756B8C;
 
-  address public endorsed;
-
   GnosisSafe private _pDAOSafe;
   AddressResolver private _addressResolver;
 
   bool public isPaused;
+  address public endorsedAccount;
+  mapping(bytes32 => bool) public covered;
 
-  constructor(address _owner, address _endorsed) {
+  constructor(address _owner, address _endorsedAccount) {
     // Do not call Ownable constructor which sets the owner to the msg.sender and set it to _owner.
     _transferOwnership(_owner);
 
@@ -541,8 +541,8 @@ contract PerpsV2RiskControlModule is Ownable {
     _addressResolver = AddressResolver(SNX_ADDRESS_RESOLVER);
     _pDAOSafe = GnosisSafe(SNX_PDAO_MULTISIG_ADDRESS);
 
-    // endorsed
-    endorsed = _endorsed;
+    // endorsedAccount
+    endorsedAccount = _endorsedAccount;
 
     // start as paused
     isPaused = true;
@@ -553,7 +553,8 @@ contract PerpsV2RiskControlModule is Ownable {
   // @dev set MMV to zero on the corresponding market.
   function coverRisk(bytes32 markeKey) external returns (bool success) {
     require(!isPaused, 'Module paused');
-    require(msg.sender == endorsed, 'Not endorsed');
+    require(msg.sender == endorsedAccount, 'Not endorsed');
+    require(covered[markeKey], 'Market not covered');
 
     success = _executeSafeTransaction(markeKey);
   }
@@ -563,9 +564,14 @@ contract PerpsV2RiskControlModule is Ownable {
     isPaused = _isPaused;
   }
 
-  // @dev sets the paused state
-  function setEndorsed(address _endorsed) external onlyOwner {
-    endorsed = _endorsed;
+  // @dev sets the endorsed account
+  function setEndorsedAccount(address _endorsedAccount) external onlyOwner {
+    endorsedAccount = _endorsedAccount;
+  }
+
+  // @dev sets the covarege for a market key
+  function setCoverage(bytes32 marketKey, bool isCovered) external onlyOwner {
+    covered[marketKey] = isCovered;
   }
 
   // --- Internal --- //
