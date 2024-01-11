@@ -1,5 +1,6 @@
 const hre = require('hardhat');
 const ethers = hre.ethers;
+const formatBytes32String = ethers.utils.formatBytes32String;
 
 const { MODULE_ADDRESS } = require('./utils/constants.js');
 
@@ -61,6 +62,7 @@ async function main() {
       perpsV2MarketSettings,
       moduleConfig: { ...moduleConfig, isPaused: true },
       marketKey,
+      marketCovered: false,
       moduleOwner: owner,
     });
     console.log('-------------------------');
@@ -115,13 +117,15 @@ async function main() {
       })
     );
 
+    await (await gnosisModule.connect(owner).setEndorsedAccount(user1.address)).wait();
+
     console.log('-------------------------');
     console.log();
 
     // attempt control risk. Should fail (not covered)
     logCheck(
-      'Attempt to control risk. Should succeed',
-      true,
+      'Attempt to control risk. Should fail - not covered',
+      false,
       await attemptToControlRisk({
         gnosisModule,
         owner,
@@ -134,7 +138,8 @@ async function main() {
     console.log('-------------------------');
     console.log();
 
-    await (await gnosisModule.connect(owner).setEndorsedAccount(user1.address)).wait();
+    await (await gnosisModule.connect(owner).setCoverage(formatBytes32String(marketKey), true)).wait();
+
     // attempt control risk. Should fail
     logCheck(
       'Attempt to control risk. Should fail - module not enabled',
@@ -180,8 +185,31 @@ async function main() {
       moduleConfig: { ...moduleConfig, endorsed: user1.address },
       moduleEnabled: true,
       marketKey,
+      marketCovered: true,
       moduleOwner: owner,
     });
+    console.log('-------------------------');
+    console.log();
+
+    // disable module
+    console.log('------------------------- REMOVE COVERAGE -------------------------');
+    await (await gnosisModule.connect(owner).setCoverage(formatBytes32String(marketKey), false)).wait();
+
+    // attempt control risk. Should fail (not covered)
+    logCheck(
+      'Attempt to control risk. Should fail - not covered',
+      false,
+      await attemptToControlRisk({
+        gnosisModule,
+        owner,
+        shouldFailNotCovered: true,
+        user: user1,
+        marketKey,
+        perpsV2MarketSettings,
+      })
+    );
+    // return coverage for next test
+    await (await gnosisModule.connect(owner).setCoverage(formatBytes32String(marketKey), true)).wait();
     console.log('-------------------------');
     console.log();
 

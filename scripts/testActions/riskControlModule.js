@@ -22,7 +22,8 @@ const verifyAndShowParams = async ({
   perpsV2MarketSettings,
   moduleConfig,
   moduleOwner,
-  marketKey,
+  marketKey = 'fakeMarket',
+  marketCovered = false,
   moduleEnabled = false,
   expectedMMV = undefined,
 }) => {
@@ -38,7 +39,7 @@ const verifyAndShowParams = async ({
 
   console.log('Verifying initial values');
   logCheck('  Module owner', moduleOwner.address, fetchedModuleOwner);
-  const fetchedModuleConfig = await checkParams({ gnosisModule, moduleConfig });
+  const fetchedModuleConfig = await checkParams({ gnosisModule, moduleConfig, marketKey, marketCovered });
 
   logCheck(`  PerpsV2 ${marketKey} MMV`, formatEther(expectedMMV), formatEther(fetchedMMV));
   logCheck('  Module Enabled', moduleEnabled, fetchedModuleEnabled);
@@ -51,16 +52,19 @@ const verifyAndShowParams = async ({
   };
 };
 
-const checkParams = async ({ gnosisModule, moduleConfig }) => {
+const checkParams = async ({ gnosisModule, moduleConfig, marketKey = 'fakeMarket', marketCovered = false }) => {
+  const marketKeyBytes = formatBytes32String(marketKey);
   const fetchedModuleConfig = {
     isPaused: await gnosisModule.isPaused(),
     endorsed: await gnosisModule.endorsedAccount(),
     owner: await gnosisModule.owner(),
+    marketCovered: await gnosisModule.covered(marketKeyBytes),
   };
   console.log('  Parameters');
   logCheck('    owner', moduleConfig.owner, fetchedModuleConfig.owner);
   logCheck('    endorsed', moduleConfig.endorsed, fetchedModuleConfig.endorsed);
   logCheck('    isPaused', moduleConfig.isPaused, fetchedModuleConfig.isPaused);
+  logCheck('    marketCovered', marketCovered, fetchedModuleConfig.marketCovered);
 
   return fetchedModuleConfig;
 };
