@@ -84,13 +84,12 @@ async function main() {
     console.log('-------------------------');
     console.log();
 
-    // attempt to modify fee. Should fail
+    // attempt control risk. Should fail
     logCheck(
       'Attempt to control risk. Should fail - paused',
       false,
       await attemptToControlRisk({
         gnosisModule,
-        shouldFail: false,
         shouldFailPaused: true,
         owner,
         user: user1,
@@ -104,15 +103,45 @@ async function main() {
     await (await gnosisModule.connect(owner).setPaused(false)).wait();
 
     // Set endorsed
-
-    await (await gnosisModule.connect(owner).setEndorsed(user1.address)).wait();
-    // attempt to modify fee. Should fail
     logCheck(
-      'Attempt to control risk. Should fail',
+      'Attempt to control risk. Should fail - not endorsed',
       false,
       await attemptToControlRisk({
         gnosisModule,
-        shouldFail: true,
+        shouldFailEndorsed: true,
+        owner,
+        user: user2,
+        marketKey,
+      })
+    );
+
+    console.log('-------------------------');
+    console.log();
+
+    // attempt control risk. Should fail (not covered)
+    logCheck(
+      'Attempt to control risk. Should succeed',
+      true,
+      await attemptToControlRisk({
+        gnosisModule,
+        owner,
+        shouldFailNotCovered: true,
+        user: user1,
+        marketKey,
+        perpsV2MarketSettings,
+      })
+    );
+    console.log('-------------------------');
+    console.log();
+
+    await (await gnosisModule.connect(owner).setEndorsedAccount(user1.address)).wait();
+    // attempt control risk. Should fail
+    logCheck(
+      'Attempt to control risk. Should fail - module not enabled',
+      false,
+      await attemptToControlRisk({
+        gnosisModule,
+        shouldFailNotEnabled: true,
         owner,
         user: user1,
         marketKey,
@@ -132,23 +161,7 @@ async function main() {
 
     console.log('-------------------------');
     console.log();
-    logCheck(
-      'Attempt to control risk. Should fail - not endorsed',
-      false,
-      await attemptToControlRisk({
-        gnosisModule,
-        shouldFail: false,
-        shouldFailEndorsed: true,
-        owner,
-        user: user2,
-        marketKey,
-      })
-    );
-
-    console.log('-------------------------');
-    console.log();
-
-    // attempt to modify fee. Should work
+    // attempt control risk. Should work
     logCheck(
       'Attempt to control risk. Should succeed',
       true,
@@ -184,9 +197,9 @@ async function main() {
     console.log('-------------------------');
     console.log();
 
-    // attempt to modify fee again. Should fail
+    // attempt control risk again. Should fail
     logCheck(
-      'Attempt to control risk. Should fail',
+      'Attempt to control risk. Should fail - disabled',
       false,
       await attemptToControlRisk({
         gnosisModule,
@@ -194,8 +207,7 @@ async function main() {
         user: user1,
         marketKey,
         perpsV2MarketSettings,
-
-        shouldFail: true,
+        shouldFailNotEnabled: true,
       })
     );
     console.log('-------------------------');

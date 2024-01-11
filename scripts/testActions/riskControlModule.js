@@ -54,7 +54,7 @@ const verifyAndShowParams = async ({
 const checkParams = async ({ gnosisModule, moduleConfig }) => {
   const fetchedModuleConfig = {
     isPaused: await gnosisModule.isPaused(),
-    endorsed: await gnosisModule.endorsed(),
+    endorsed: await gnosisModule.endorsedAccount(),
     owner: await gnosisModule.owner(),
   };
   console.log('  Parameters');
@@ -70,30 +70,41 @@ const attemptToControlRisk = async ({
   owner,
   user,
   perpsV2MarketSettings,
-  shouldFail,
+  shouldFailNotEnabled = false,
   shouldFailEndorsed = false,
   shouldFailPaused = false,
+  shouldFailNotCovered = false,
   marketKey,
 }) => {
   const marketKeyBytes = formatBytes32String(marketKey);
-  let succeeded = true;
-  if (shouldFail) {
+
+  if (shouldFailNotEnabled) {
     await assertRevert(gnosisModule.connect(user).coverRisk(marketKeyBytes), 'GS104');
-    succeeded = false;
-  } else if (shouldFailEndorsed) {
-    await assertRevert(gnosisModule.connect(user).coverRisk(marketKeyBytes), 'Not endorsed');
-    succeeded = false;
-  } else if (shouldFailPaused) {
-    await assertRevert(gnosisModule.connect(user).coverRisk(marketKeyBytes), 'Module paused');
-    succeeded = false;
-  } else {
-    const previousValue = await perpsV2MarketSettings.maxMarketValue(marketKeyBytes);
-    logCheck('  Previous MMV', formatEther(previousValue), formatEther(previousValue));
-    await (await gnosisModule.connect(user).coverRisk(marketKeyBytes)).wait();
-    const currentValue = await perpsV2MarketSettings.maxMarketValue(marketKeyBytes);
-    logCheck('  New MMV', formatEther(0), formatEther(currentValue));
+    return false;
   }
-  return succeeded;
+
+  if (shouldFailEndorsed) {
+    await assertRevert(gnosisModule.connect(user).coverRisk(marketKeyBytes), 'Not endorsed');
+    return false;
+  }
+
+  if (shouldFailPaused) {
+    await assertRevert(gnosisModule.connect(user).coverRisk(marketKeyBytes), 'Module paused');
+    return false;
+  }
+
+  if (shouldFailNotCovered) {
+    await assertRevert(gnosisModule.connect(user).coverRisk(marketKeyBytes), 'Market not covered');
+    return false;
+  }
+
+  const previousValue = await perpsV2MarketSettings.maxMarketValue(marketKeyBytes);
+  logCheck('  Previous MMV', formatEther(previousValue), formatEther(previousValue));
+  await (await gnosisModule.connect(user).coverRisk(marketKeyBytes)).wait();
+  const currentValue = await perpsV2MarketSettings.maxMarketValue(marketKeyBytes);
+  logCheck('  New MMV', formatEther(0), formatEther(currentValue));
+
+  return true;
 };
 
 
