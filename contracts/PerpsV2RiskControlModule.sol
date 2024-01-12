@@ -2,7 +2,6 @@
 pragma solidity ^0.8.17;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
-import '@openzeppelin/contracts/utils/math/Math.sol';
 
 import './interfaces/GnosisSafe.sol';
 import './interfaces/AddressResolver.sol';
@@ -11,8 +10,6 @@ import './interfaces/AddressResolver.sol';
 //
 // @see: https://sips.synthetix.io/sips/sip-2048/
 contract PerpsV2RiskControlModule is Ownable {
-  using Math for uint256;
-
   address public constant SNX_PDAO_MULTISIG_ADDRESS = 0x6cd3f878852769e04A723A5f66CA7DD4d9E38A6C;
   address public constant SNX_ADDRESS_RESOLVER = 0x95A6a3f44a70172E7d50a9e28c85Dfd712756B8C;
 
@@ -41,12 +38,12 @@ contract PerpsV2RiskControlModule is Ownable {
   // --- External/Public --- //
 
   // @dev set MMV to zero on the corresponding market.
-  function coverRisk(bytes32 markeKey) external returns (bool success) {
+  function coverRisk(bytes32 marketKey) external returns (bool success) {
     require(!isPaused, 'Module paused');
     require(msg.sender == endorsedAccount, 'Not endorsed');
-    require(covered[markeKey], 'Market not covered');
+    require(covered[marketKey], 'Market not covered');
 
-    success = _executeSafeTransaction(markeKey);
+    success = _executeSafeTransaction(marketKey);
   }
 
   // @dev sets the paused state
@@ -66,10 +63,10 @@ contract PerpsV2RiskControlModule is Ownable {
 
   // --- Internal --- //
 
-  function _executeSafeTransaction(bytes32 markeKey) internal returns (bool success) {
+  function _executeSafeTransaction(bytes32 marketKey) internal returns (bool success) {
     bytes memory payload = abi.encodeWithSignature(
       'setMaxMarketValue(bytes32,uint256)',
-      markeKey,
+      marketKey,
       0
     );
     address marketSettingsAddress = _addressResolver.requireAndGetAddress(
@@ -86,14 +83,14 @@ contract PerpsV2RiskControlModule is Ownable {
     uint256 _lastParamterUpdatedAtTime = block.timestamp;
 
     if (success) {
-      emit ReduceMMVDone(markeKey, _lastParamterUpdatedAtTime);
+      emit ReduceMMVDone(marketKey, _lastParamterUpdatedAtTime);
     } else {
-      emit ReduceMMVFailed(markeKey, _lastParamterUpdatedAtTime);
+      emit ReduceMMVFailed(marketKey, _lastParamterUpdatedAtTime);
     }
   }
 
   // --- Events --- //
 
-  event ReduceMMVDone(bytes32 markeKey, uint256 paramterUpdatedAtTime);
-  event ReduceMMVFailed(bytes32 markeKey, uint256 paramterUpdateAttemptedAtTime);
+  event ReduceMMVDone(bytes32 marketKey, uint256 paramterUpdatedAtTime);
+  event ReduceMMVFailed(bytes32 marketKey, uint256 paramterUpdateAttemptedAtTime);
 }
