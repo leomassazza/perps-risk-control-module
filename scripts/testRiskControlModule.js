@@ -138,7 +138,9 @@ async function main() {
     console.log('-------------------------');
     console.log();
 
-    await (await gnosisModule.connect(owner).setCoverage(formatBytes32String(marketKey), true)).wait();
+    await (
+      await gnosisModule.connect(owner).setCoverage(formatBytes32String(marketKey), true)
+    ).wait();
 
     // attempt control risk. Should fail
     logCheck(
@@ -193,7 +195,9 @@ async function main() {
 
     // disable module
     console.log('------------------------- REMOVE COVERAGE -------------------------');
-    await (await gnosisModule.connect(owner).setCoverage(formatBytes32String(marketKey), false)).wait();
+    await (
+      await gnosisModule.connect(owner).setCoverage(formatBytes32String(marketKey), false)
+    ).wait();
 
     // attempt control risk. Should fail (not covered)
     logCheck(
@@ -209,7 +213,9 @@ async function main() {
       })
     );
     // return coverage for next test
-    await (await gnosisModule.connect(owner).setCoverage(formatBytes32String(marketKey), true)).wait();
+    await (
+      await gnosisModule.connect(owner).setCoverage(formatBytes32String(marketKey), true)
+    ).wait();
     console.log('-------------------------');
     console.log();
 

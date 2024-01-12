@@ -8,7 +8,7 @@ const tickOrCross = pass => (pass ? green('✔') : red('✗'));
 const logCheck = (message, expected, fetched) => {
   console.log(
     `${message}: ${tickOrCross(expected === fetched)} ` +
-    gray(`(expected: ${expected} fetched: ${fetched})`)
+      gray(`(expected: ${expected} fetched: ${fetched})`)
   );
 
   if (expected !== fetched) {
@@ -39,7 +39,12 @@ const verifyAndShowParams = async ({
 
   console.log('Verifying initial values');
   logCheck('  Module owner', moduleOwner.address, fetchedModuleOwner);
-  const fetchedModuleConfig = await checkParams({ gnosisModule, moduleConfig, marketKey, marketCovered });
+  const fetchedModuleConfig = await checkParams({
+    gnosisModule,
+    moduleConfig,
+    marketKey,
+    marketCovered,
+  });
 
   logCheck(`  PerpsV2 ${marketKey} MMV`, formatEther(expectedMMV), formatEther(fetchedMMV));
   logCheck('  Module Enabled', moduleEnabled, fetchedModuleEnabled);
@@ -52,7 +57,12 @@ const verifyAndShowParams = async ({
   };
 };
 
-const checkParams = async ({ gnosisModule, moduleConfig, marketKey = 'fakeMarket', marketCovered = false }) => {
+const checkParams = async ({
+  gnosisModule,
+  moduleConfig,
+  marketKey = 'fakeMarket',
+  marketCovered = false,
+}) => {
   const marketKeyBytes = formatBytes32String(marketKey);
   const fetchedModuleConfig = {
     isPaused: await gnosisModule.isPaused(),
@@ -110,8 +120,6 @@ const attemptToControlRisk = async ({
 
   return true;
 };
-
-
 
 module.exports = {
   logCheck,
