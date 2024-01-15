@@ -7,6 +7,7 @@
     "fork:ovm": "npx hardhat node --fork https://mainnet.optimism.io",
     "compile": "hardhat compile",
     "build": "tsc && cp .env build/",
+    "deploy": "hardhat run ./scripts/deploy.js --network 'mainnet-ovm'",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "flatten-module": "mkdir -p ./flattened/contracts && hardhat flatten contracts/PerpsV2RiskControlModule.sol > flattened/contracts/PerpsV2RiskControlModule.sol"
